@@ -76,3 +76,44 @@ node lab/oz/oz-local.mjs
 All output is newline-delimited JSON (`{ ts, event, ...data }`), making it easy to pipe into log aggregators.
 
 Example events: `boot`, `issue.selected`, `linear.state`, `gate.blocked`, `issue.done`, `fatal`.
+
+---
+
+## Dashboard
+
+`lab/oz/dashboard.mjs` is a live web dashboard that tails the orchestrator's NDJSON log file and streams updates to your browser in real time via Server-Sent Events.
+
+![Oz Dashboard](https://github.com/user-attachments/assets/df2d50e8-1a55-4261-9210-8437b48f95c8)
+
+### Features
+
+- **Phase ring** — animated indicator showing the current loop phase (Idle → Planning → Coding → CI → Review → Done / Blocked)
+- **Stats cards** — live counters for Done, Blocked, In Progress, and Total issues seen
+- **Current Issue** — highlights the issue being worked on right now
+- **Last CI** — shows Pass / Fail and timestamp of the most recent CI run
+- **Live Activity Feed** — colour-coded NDJSON event stream with auto-scroll
+- **Issue History table** — per-issue verdict, CI result, and final status
+- **Throughput sparkline** — hourly issue completion rate over the last 12 hours
+- **Auto-reconnect** — SSE reconnects automatically if the server restarts
+
+### Dashboard env vars
+
+| Variable | Default | Description |
+|---|---|---|
+| `OZ_LOG_FILE` | `./oz.log` | Path to the NDJSON log file written by `oz-local.mjs` |
+| `DASH_PORT` | `4000` | HTTP port for the dashboard server |
+| `DASH_HOST` | `127.0.0.1` | Bind address |
+
+### Running the dashboard
+
+```bash
+# Terminal 1 — run the orchestrator, tee logs to a file
+node lab/oz/oz-local.mjs 2>&1 | tee oz.log
+
+# Terminal 2 — start the dashboard
+OZ_LOG_FILE=./oz.log node lab/oz/dashboard.mjs
+
+# Open http://localhost:4000 in your browser
+```
+
+The dashboard replays the full log history to every new browser tab, then streams live events as they arrive.
